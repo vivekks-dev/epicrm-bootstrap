@@ -1,0 +1,56 @@
+version: '3'
+services:
+  saasmandb:
+    image: postgres:14
+    # TODO use constants/env for healthcheck timing values
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - saasmandb-pgdir:/var/lib/postgresql/
+    env_file:
+      - ./env-secret/saasmandb.self.secret.env
+
+  saasmandb-migrate:
+    image: epicrm_saasmandb-migrate
+    env_file:
+      # DBURL
+      - ./env-secret/saasmandb-migrate.self.secret.env
+    depends_on:
+      saasmandb:
+        condition: service_healthy
+
+  saasmanapi:
+    image: epicrm_saasmanapi
+    # TODO FIXME this is not the database it should connect to
+    environment:
+      - AUTHDB_POSTGRES_HOST=authdb-pgpool
+      - AUTHDB_POSTGRES_PORT=5432
+      - AUTHDB_POSTGRES_NAME=postgres
+      - AUTHDB_POSTGRES_USER=postgres
+      - SAASMANDB_POSTGRES_HOST=saasmandb
+      - SAASMANDB_POSTGRES_PORT=5432
+      - SAASMANDB_POSTGRES_NAME=postgres
+      - SAASMANDB_POSTGRES_USER=postgres
+    env_file:
+      - ./env/sysorguuid.env
+      - ./env-secret/authdb.secret.env
+      - ./env-secret/saasmandb.secret.env
+    depends_on:
+      authdb-pgpool:
+        condition: service_healthy
+      saasmandb-migrate:
+        condition: service_completed_successfully
+
+  # TODO FIXME not so clean that I override another module's DB here
+  # move these to a separate override file that can be activated by any project.
+  authdb-follow-1:
+    entrypoint: [ "echo", "Disabled." ]
+
+  authdb-follow-2:
+    entrypoint: [ "echo", "Disabled." ]
+
+volumes:
+  saasmandb-pgdir:

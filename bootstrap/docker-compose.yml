@@ -1,0 +1,236 @@
+version: '3'
+services:
+  init-authdb:
+    image: epicrm_init-authdb
+    volumes:
+      - authdb-pgdir:/var/lib/postgresql/
+
+# TODO keep in sync with apigate until both use the same image
+  apigate:
+    image: nginx
+    volumes:
+      - ./autogen/gatewayconf:/etc/nginx
+    # TODO use TLS
+    ports:
+      - ${APIGATE_PORT-8081}:80
+    depends_on:
+      - authapi
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 10
+
+  authdb:
+    image: epicrm_authdb
+    volumes:
+      - authdb-pgdir:/var/lib/postgresql/
+    env_file:
+      - ./env-secret/authdb.self.secret.env
+      # PGPOOL_SR_CHECK_PASSWORD (for user creation)
+      - ./env-secret/authdb-replicator.secret.env
+    depends_on:
+    # Tested on docker-compose-plugin v2.6.0
+      init-authdb:
+        condition: service_completed_successfully
+
+  # TODO make sure started only after authdb is ready or is capable of waiting (pg_basebackup will fail otherwise)
+  authdb-follow-1:
+    image: epicrm_authdb-follow
+    volumes:
+      - authdb-follow-1-pgdir:/var/lib/postgresql/
+    environment:
+      - MASTER_HOST=authdb
+    env_file:
+      - ./env-secret/authdb.self.secret.env
+      - ./env-secret/authdb-replicator.secret.env
+    depends_on:
+      - authdb
+
+  # TODO make sure started only after authdb is ready or is capable of waiting (pg_basebackup will fail otherwise)
+  authdb-follow-2:
+    image: epicrm_authdb-follow
+    volumes:
+      - authdb-follow-2-pgdir:/var/lib/postgresql/
+    environment:
+      - MASTER_HOST=authdb
+    env_file:
+      - ./env-secret/authdb.self.secret.env
+      - ./env-secret/authdb-replicator.secret.env
+    depends_on:
+      - authdb
+
+  authdb-migrate:
+    image: epicrm_authdb-migrate
+    env_file:
+      # DBURL
+      - ./env-secret/authdb-migrate.self.secret.env
+    depends_on:
+    # Tested on docker-compose-plugin v2.6.0
+      init-authdb:
+        condition: service_completed_successfully
+
+# TODO REM
+#  pgb-authdb:
+#    image: pgbouncer/pgbouncer
+#    env_file:
+#      - ./env-secret/authdb.secret.env
+# DATABASES_HOST, DATABASES_USER, DATABASES_PASSWORD, PGBOUNCER_LISTEN_PORT=5439
+#      - ./pgb-authdb.env
+
+  # TODO rename to authdb-pgpool
+  authdb-pgpool:
+    image: epicrm_authdb-pgpool
+    # TODO use constants/env for healthcheck timing values
+    healthcheck:
+      # TODO FIXME pg_isready is not available
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    env_file:
+      # POSTGRES_PASSWORD
+      - ./env-secret/authdb.secret.env
+      # PGPOOL_POSTGRES_PASSWORD
+      - ./env-secret/authpgpool-pgpass.secret.env
+      # PGPOOL_ADMIN_PASSWORD
+      - ./env-secret/authpgpool.secret.env
+      # PGPOOL_SR_CHECK_PASSWORD
+      - ./env-secret/authdb-replicator.secret.env
+    environment:
+      - PGPOOL_USER_CONF_FILE=/pgpool.conf
+      - PGPOOL_BACKEND_NODES=0:authdb,1:authdb-follow-1,2:authdb-follow-2
+      - PGPOOL_ADMIN_USERNAME=admin
+      # TODO why are these needed? Replication is done by pg, not pgpool
+      - PGPOOL_POSTGRES_USERNAME=postgres
+      - PGPOOL_SR_CHECK_USER=replicator
+      - PGPOOL_ENABLE_LOAD_BALANCING=yes
+    depends_on:
+      - authdb
+      - authdb-follow-1
+      - authdb-follow-2
+   # TODO copy healthcheck from the official example
+
+  redis-apitokdb:
+    image: redis
+    # TODO make sure the password is set
+    env_file:
+      - ./env-secret/apitokdb.secret.env
+
+#  # TODO Protect, enforce TLS
+#  rabbitmq:
+#    image: rabbitmq
+
+  unauthapi:
+    image: epicrm_unauthapi
+    environment:
+      - AUTHDB_POSTGRES_HOST=authdb-pgpool
+      - AUTHDB_POSTGRES_PORT=5432
+      - AUTHDB_POSTGRES_NAME=postgres
+      - AUTHDB_POSTGRES_USER=postgres
+    env_file:
+      - ./env-secret/authdb.secret.env
+    depends_on:
+      - authdb-pgpool
+
+  loginapi:
+    image: epicrm_loginapi
+    environment:
+      - AUTHDB_POSTGRES_HOST=authdb-pgpool
+      - AUTHDB_POSTGRES_PORT=5432
+      - AUTHDB_POSTGRES_NAME=postgres
+      - AUTHDB_POSTGRES_USER=postgres
+#      - RABBIT_URL=amqp://rabbitmq
+      - EPICRM_APITOKDB_HOST=redis-apitokdb
+      - EPICRM_APITOKDB_PORT=6379
+    env_file:
+      - ./env-secret/authdb.secret.env
+    depends_on:
+      - authdb-pgpool
+      - redis-apitokdb
+#      - rabbitmq
+
+  authapi:
+    image: epicrm_authapi
+    environment:
+#      - KRATOSHOST=${KRATOSHOST}
+      - EPICRM_APITOKDB_HOST=redis-apitokdb
+      - EPICRM_APITOKDB_PORT=6379
+    depends_on:
+      - redis-apitokdb
+
+  tokenapi:
+    image: epicrm_tokenapi
+    environment:
+#      - KRATOSHOST=${KRATOSHOST}
+      - EPICRM_APITOKDB_HOST=redis-apitokdb
+      - EPICRM_APITOKDB_PORT=6379
+    depends_on:
+      - authdb-pgpool
+      - redis-apitokdb
+
+  userapi:
+    image: epicrm_userapi
+    environment:
+      # TODO create and use userdb
+      - AUTHDB_POSTGRES_HOST=authdb-pgpool
+      - AUTHDB_POSTGRES_PORT=5432
+      - AUTHDB_POSTGRES_NAME=postgres
+      - AUTHDB_POSTGRES_USER=postgres
+    env_file:
+      - ./env-secret/authdb.secret.env
+    depends_on:
+      - authdb-pgpool
+
+  orgapi:
+    image: epicrm_orgapi
+    environment:
+      - ORGDB_POSTGRES_HOST=orgdb
+      - ORGDB_POSTGRES_PORT=5432
+      - ORGDB_POSTGRES_NAME=postgres
+      - ORGDB_POSTGRES_USER=postgres
+      - AUTHDB_POSTGRES_HOST=authdb-pgpool
+      - AUTHDB_POSTGRES_PORT=5432
+      - AUTHDB_POSTGRES_NAME=postgres
+      - AUTHDB_POSTGRES_USER=postgres
+    env_file:
+      - ./env-secret/orgdb.secret.env
+      - ./env-secret/authdb.secret.env
+    depends_on:
+      authdb-pgpool:
+        condition: service_healthy
+
+  orgdb:
+    image: postgres:14
+    # TODO use constants/env for healthcheck timing values
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - orgdb-pgdir:/var/lib/postgresql/
+    env_file:
+      - ./env-secret/orgdb.self.secret.env
+
+  orgdb-migrate:
+    image: epicrm_orgdb-migrate
+    env_file:
+      # DBURL
+      - ./env-secret/orgdb-migrate.self.secret.env
+    depends_on:
+      orgdb:
+        condition: service_healthy
+
+volumes:
+  authdb-pgdir:
+  authdb-follow-1-pgdir:
+  authdb-follow-2-pgdir:
+  orgdb-pgdir:
+
+# Configuring subnet because pg_hba.conf depends on it
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${SUBNET-172.31.0.0/16}

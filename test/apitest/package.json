@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "assert": "^2.0.0",
+    "http": "^0.0.1-security",
+    "node-fetch": "^3.2.3"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node --experimental-modules main.js"
+  }
+}

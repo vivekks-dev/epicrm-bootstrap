@@ -1,0 +1,47 @@
+version: '3'
+services:
+  loyaltyapi:
+    image: epicrm_loyaltyapi
+    # TODO FIXME this is not the database it should connect to
+    environment:
+      - AUTHDB_POSTGRES_HOST=authdb-pgpool
+      - AUTHDB_POSTGRES_PORT=5432
+      - AUTHDB_POSTGRES_NAME=postgres
+      - AUTHDB_POSTGRES_USER=postgres
+      - LOYALTYDB_POSTGRES_HOST=loyaltydb
+      - LOYALTYDB_POSTGRES_PORT=5432
+      - LOYALTYDB_POSTGRES_NAME=postgres
+      - LOYALTYDB_POSTGRES_USER=postgres
+    env_file:
+      - ./env-secret/authdb.secret.env
+      - ./env-secret/loyaltydb.secret.env
+    depends_on:
+      authdb-pgpool:
+        condition: service_healthy
+      loyaltydb-migrate:
+        condition: service_completed_successfully
+
+  loyaltydb:
+    image: postgres:14
+    # TODO use constants/env for healthcheck timing values
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - loyaltydb-pgdir:/var/lib/postgresql/
+    env_file:
+      - ./env-secret/loyaltydb.self.secret.env
+
+  loyaltydb-migrate:
+    image: epicrm_loyaltydb-migrate
+    env_file:
+      # DBURL
+      - ./env-secret/loyaltydb-migrate.self.secret.env
+    depends_on:
+      loyaltydb:
+        condition: service_healthy
+
+volumes:
+  loyaltydb-pgdir:

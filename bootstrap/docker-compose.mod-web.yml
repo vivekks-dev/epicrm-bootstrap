@@ -1,0 +1,21 @@
+version: '3'
+services:
+  redis-websessdb:
+    image: redis
+    # TODO make sure the password is set
+    env_file:
+      - ./env-secret/websessdb.secret.env
+
+  web:
+    image: epicrm_web
+    env_file:
+      - ./env/apiserv.env
+      - ./env-secret/websessdb.secret.env
+      - ./env-secret/apiclient.secret.env
+    environment:
+      - EPICRM_WEBSESSDB_HOST=redis-websessdb
+      - EPICRM_WEBSESSDB_PORT=6379
+    ports:
+      - 3000:3000
+    depends_on:
+      - redis-websessdb
