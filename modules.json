@@ -1,0 +1,123 @@
+[
+	{
+		"name": "auth",
+		"essential": true,
+		"api": true,
+		"paths": [
+			{
+				"pattern": "/auth/checkpoint",
+				"exact": true,
+				"internal": true,
+				"needs_auth": false
+			}
+		],
+		"databases": [
+			"authdb"
+		]
+	},
+	{
+		"name": "login",
+		"essential": true,
+		"api": true,
+		"paths": [
+			{
+				"pattern": "/login",
+				"needs_auth": false
+			}
+		]
+	},
+	{
+		"name": "loyalty",
+		"api": true,
+		"paths": [
+			{
+				"pattern": "/loyalty",
+				"invalid": true
+			},
+			{
+				"pattern": "/loyalty/",
+				"needs_auth": true
+			}
+		],
+		"databases": [
+			"loyaltydb"
+		]
+	},
+	{
+		"name": "org",
+		"api": true,
+		"essential": true,
+		"paths": [
+			{
+				"pattern": "/organizations",
+				"needs_auth": true
+			}
+		],
+		"databases": [
+			"orgdb"
+		]
+	},
+	{
+		"name": "saasman",
+		"api": true,
+		"paths": [
+			{
+				"pattern": "/saasman",
+				"invalid": true
+			},
+			{
+				"pattern": "/saasman/",
+				"needs_auth": true
+			}
+		],
+		"databases": [
+			"saasmandb"
+		]
+	},
+	{
+		"name": "token",
+		"essential": true,
+		"api": true,
+		"paths": [
+			{
+				"pattern": "/token",
+				"invalid": true
+			},
+			{
+				"pattern": "/token/",
+				"needs_auth": true
+			}
+		]
+	},
+	{
+		"name": "unauth",
+		"essential": true,
+		"api": true,
+		"paths": [
+			{
+				"pattern": "/sysinfo",
+				"needs_auth": false
+			},
+			{
+				"pattern": "/ping",
+				"needs_auth": false
+			}
+		]
+	},
+	{
+		"name": "user",
+		"essential": true,
+		"api": true,
+		"paths": [
+			{
+				"pattern": "/users",
+				"needs_auth": true
+			}
+		]
+	},
+	{
+		"name": "web",
+		"essential": false,
+		"api": false
+	}
+]
