@@ -78,6 +78,9 @@ class ProjectConf:
 			args += [IMAGESREPO]
 
 		mypopen(args)
+
+	def docker_pull(self):
+		mypopen(['docker', 'compose', '-p', self.projname] + self.get_compose_file_args() + ['pull'])
 		
 	def down(self):
 		mypopen(['docker', 'compose', '-p', self.projname] + self.get_compose_file_args() + ['down'])
@@ -292,7 +295,9 @@ def main():
 
 		confobj = project_conf_new_from_projdir(args.projdir)
 
-		if args.action == 'down':
+		if args.action == 'docker-pull':
+			confobj.docker_pull()
+		elif args.action == 'down':
 			confobj.down()
 		elif args.action == 'filltestdb':
 			confobj.filltestdb()

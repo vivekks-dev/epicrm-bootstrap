@@ -41,6 +41,9 @@ jobs:
       - name: Init a project
         run: ./epicrmanage.py -v --projdir /tmp/projdir --projname myproj init
 
+      - name: Pull the images
+        run: ./epicrmanage.py -v --projdir /tmp/projdir docker-pull
+
       - name: generate-gateway-conf
         run: ./epicrmanage.py -v --projdir /tmp/projdir generate-gateway-conf
 
