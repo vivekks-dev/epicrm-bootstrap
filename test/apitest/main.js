@@ -6,7 +6,7 @@ import * as myssert from './assert.js'
 import { config, init } from './config.js'
 import { test_change_password } from './change-password.js'
 import { test_login, test_recoverylogin_rejects_normalpass } from './login.js'
-import { test_get_loyalty_my_permissions } from './loyalty.js'
+import { test_get_loyalty_my_permissions, test_loyalty_get_tiers, test_loyalty_add_tiers } from './loyalty.js'
 import { test_get_users } from './get-users.js'
 import { test_post_organizations } from './org.js'
 import { test_post_users } from './post-users.js'
@@ -80,9 +80,12 @@ async function main() {
 	assert( JSON.stringify( (await res.json())['data'] ) === JSON.stringify(config.EXPDATA_PERMS) )
 
 
-	if(!globstate.saasmanMode)
-		await test_get_loyalty_my_permissions(globstate.validBearerToken)
-
+	if(!globstate.saasmanMode) {
+		await test_get_loyalty_my_permissions(globstate.validBearerToken)	
+		await test_loyalty_get_tiers(globstate.validBearerToken)
+		await test_loyalty_add_tiers(globstate.validBearerToken)
+		// TODO test GET again
+	}
 
 	console.log('Test: /users/5342c632-398f-11ed-8adc-af8ba7a561bc/public-profile: GET without auth')
 	res = await fetch(config.APISERV + '/users/5342c632-398f-11ed-8adc-af8ba7a561bc/public-profile', {
