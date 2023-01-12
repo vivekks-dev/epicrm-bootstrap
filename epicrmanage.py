@@ -74,7 +74,6 @@ class ProjectConf:
 
 	def copy_compose_files(self):
 		args = [SCRIPTDIR + '/bootstrap/copy-compose-files.sh', self.projdir]
-		print("self.local_images = " + str(self.local_images)) # TODO REM
 		if not self.local_images:
 			args += [IMAGESREPO]
 
