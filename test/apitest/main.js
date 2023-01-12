@@ -10,6 +10,7 @@ import { test_get_loyalty_my_permissions } from './loyalty.js'
 import { test_get_users } from './get-users.js'
 import { test_post_organizations } from './org.js'
 import { test_post_users } from './post-users.js'
+import { test_get_saasman_tenants } from './saasman.js'
 import { test_sys_auth, test_sys_unauth } from './sys.js'
 
 var globstate = { saasmanMode: false, validBearerToken: null }
@@ -155,6 +156,9 @@ async function main() {
 
 	if(!globstate.saasmanMode)
 		await test_post_organizations(globstate.validBearerToken)
+
+	if(globstate.saasmanMode)
+		await test_get_saasman_tenants(globstate.validBearerToken)
 
 	await test_get_users(globstate.validBearerToken)
 	
