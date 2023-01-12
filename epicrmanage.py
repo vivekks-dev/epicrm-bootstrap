@@ -106,8 +106,8 @@ class ProjectConf:
 	def initdb(self):
 		self.filldb(SCRIPTDIR + '/bootstrap/initdb')
 
-	def filltestdb(self):
-		self.filldb('test/testdb', self.testdb_sqlsuffix)
+	def filltestdb(self, epicrm_srcdir):
+		self.filldb(epicrm_srcdir + '/test/testdb', self.testdb_sqlsuffix)
 
 	def included_modconfs(self):
 		modconfs = []
@@ -271,6 +271,7 @@ def main():
 
 	argparser.add_argument('--projdir', action='store', required=True)
 	argparser.add_argument('--projname', action='store')
+	argparser.add_argument('--epicrm-srcdir', action='store')
 	argparser.add_argument('--local-images', action='store_true')
 	argparser.add_argument('--saasman-edition', action='store_true')
 	argparser.add_argument('-v', '--verbose', action='store_true')
@@ -300,7 +301,10 @@ def main():
 		elif args.action == 'down':
 			confobj.down()
 		elif args.action == 'filltestdb':
-			confobj.filltestdb()
+			if args.epicrm_srcdir == None:
+				die('--epicrm-srcdir must be set for --filltestdb')
+
+			confobj.filltestdb(args.epicrm_srcdir)
 		elif args.action == 'generate-gateway-conf':
 			confobj.generate_gateway_conf()
 		elif args.action == 'init':
