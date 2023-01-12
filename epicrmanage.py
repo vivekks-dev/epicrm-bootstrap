@@ -13,6 +13,7 @@ import sys
 modprops = None
 
 IMAGESREPO = '853494791452.dkr.ecr.us-east-1.amazonaws.com/epixel-retyn'
+SCRIPTDIR = os.path.dirname(__file__)
 
 def mypopen(args, env={}):
 	logging.info('popen(): ' + ' '.join(args))
@@ -72,7 +73,7 @@ class ProjectConf:
 		self.local_images = False
 
 	def copy_compose_files(self):
-		args = ['bootstrap/copy-compose-files.sh', self.projdir]
+		args = [SCRIPTDIR + '/bootstrap/copy-compose-files.sh', self.projdir]
 		print("self.local_images = " + str(self.local_images)) # TODO REM
 		if not self.local_images:
 			args += [IMAGESREPO]
@@ -101,10 +102,10 @@ class ProjectConf:
 
 			args.append(mod['name'] + 'db')
 
-		mypopen(['bootstrap/filldb.sh'] + args, {'EPICRM_PROJECT_NAME': self.projname})
+		mypopen([SCRIPTDIR + '/bootstrap/filldb.sh'] + args, {'EPICRM_PROJECT_NAME': self.projname})
 
 	def initdb(self):
-		self.filldb('bootstrap/initdb')
+		self.filldb(SCRIPTDIR + '/bootstrap/initdb')
 
 	def filltestdb(self):
 		self.filldb('test/testdb', self.testdb_sqlsuffix)
@@ -126,7 +127,7 @@ class ProjectConf:
 		apiconfdir = gwconfdir + '/apiconf.d'
 		newfiles = []
 
-		mypopen(['bootstrap/copy-nginx-files.sh', self.projdir])
+		mypopen([SCRIPTDIR + '/bootstrap/copy-nginx-files.sh', self.projdir])
 
 		try:
 			os.makedirs(apiconfdir)
@@ -177,11 +178,11 @@ class ProjectConf:
 		return cfarr
 
 	def mkenv(self):
-		mypopen(['bootstrap/mkenv.sh', self.projdir, self.projname] +
+		mypopen([SCRIPTDIR + '/bootstrap/mkenv.sh', self.projdir, self.projname] +
 			self.get_databases())
 
 	def mktestenv(self):
-		mypopen(['bootstrap/mktestenv.sh', self.projdir, self.projname])
+		mypopen([SCRIPTDIR + '/bootstrap/mktestenv.sh', self.projdir, self.projname])
 
 	def get_databases(self):
 		dblist = []
@@ -278,7 +279,7 @@ def main():
 
 	args = argparser.parse_args()
 
-	modprops = json.load(open(os.path.dirname(__file__) + '/modules.json', 'r'))
+	modprops = json.load(open(SCRIPTDIR + '/modules.json', 'r'))
 	# TODO validate modprops; make sure one db is owned by one module only (even if it is shared between modules).
 
 	if args.verbose:
