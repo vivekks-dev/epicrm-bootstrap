@@ -107,14 +107,15 @@ export async function test_loyalty_add_tiers(validBearerToken) {
 	console.log('Test: /loyalty/tiers: POST with valid Authorization')
 	res = await fetch(config.APISERV + '/loyalty/tiers', {
 		method: 'POST',
-		headers: { 'Authorization': 'Bearer ' + validBearerToken },
-		body: {
+		headers: { 'Authorization': 'Bearer ' + validBearerToken,
+			'Content-Type': 'application/json' },
+		body: JSON.stringify({
 			"name": "Platinum Badge",
 			"logo_url": "https://assets.epixelmlmsoftware.com/sites/all/themes/epixel_mlm/epixel-mlm-software-logo.svg",
 			"note": "Platinum badge",
 			"organization": "29be3f18-37db-11ed-95e6-578b37499fdd",
 			"status": true
-		}
+		})
 	})
 	assert(res.status === 200)
 	myssert.assertContentType(res, 'application/json')
