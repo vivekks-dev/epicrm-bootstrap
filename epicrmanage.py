@@ -321,7 +321,9 @@ def project_conf_new_from_projdir(projdir):
 		projobj = ProjectConf(projdir, jsonobj['projname'])
 		projobj.modules = jsonobj['modules']
 		projobj.testdb_sqlsuffix = jsonobj['testdb_sqlsuffix']
-		projobj.local_images = jsonobj['local_images']
+		
+		if 'local_images' in jsonobj:
+			projobj.local_images = jsonobj['local_images']
 		
 		return projobj
 
