@@ -103,6 +103,10 @@ class ProjectConf:
 
 		mypopen([SCRIPTDIR + '/bootstrap/filldb.sh'] + args, {'EPICRM_PROJECT_NAME': self.projname})
 
+	def init_fix_missing(self):
+		self.copy_compose_files()
+		self.generate_gateway_conf()
+
 	def initdb(self):
 		self.filldb(SCRIPTDIR + '/bootstrap/initdb')
 
@@ -298,6 +302,8 @@ def main():
 
 		if args.action == 'docker-pull':
 			confobj.docker_pull()
+		elif args.action == 'copy-compose-files':
+			confobj.copy_compose_files()
 		elif args.action == 'down':
 			confobj.down()
 		elif args.action == 'filltestdb':
@@ -307,8 +313,8 @@ def main():
 			confobj.filltestdb(args.epicrm_srcdir)
 		elif args.action == 'generate-gateway-conf':
 			confobj.generate_gateway_conf()
-		elif args.action == 'init':
-			confobj.init()
+		elif args.action == 'init-fix-missing':
+			confobj.init_fix_missing()
 		elif args.action == 'setup':
 			confobj.initdb()
 		elif args.action == 'reload-gateway':

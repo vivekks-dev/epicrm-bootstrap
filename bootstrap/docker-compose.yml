@@ -179,6 +179,8 @@ services:
       - AUTHDB_POSTGRES_USER=postgres
     env_file:
       - ./env-secret/authdb.secret.env
+    volumes:
+      - ./modconf.d/userapi/:/app/conf.d/
     depends_on:
       - authdb-pgpool
 
