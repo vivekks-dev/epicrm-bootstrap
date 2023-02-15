@@ -25,6 +25,11 @@ for f in "$scriptdir"/docker-compose*.yml; do
 	
 	targfile="$PROJDIR/$(basename "$f")"
 	
+	if [ -e "$targfile" ]; then
+		echo 'Already exists; not copying.'
+		continue
+	fi
+	
 	echo '# DO NOT EDIT' > "$targfile"
 	cat "$f" >> "$targfile"
 

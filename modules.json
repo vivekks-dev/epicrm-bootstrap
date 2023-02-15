@@ -137,5 +137,17 @@
 		"name": "web",
 		"essential": false,
 		"api": false
+	},
+	{
+		"name": "demovalidator",
+		"essential": false,
+		"api": true,
+		"paths": [
+			{
+				"pattern": "/demovalidator",
+				"internal": true,
+				"needs_auth": true
+			}
+		]
 	}
 ]

@@ -1,0 +1,4 @@
+version: '3'
+services:
+  demovalidatorapi:
+    image: epicrm_demovalidatorapi
