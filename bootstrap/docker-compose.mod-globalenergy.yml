@@ -1,0 +1,61 @@
+version: '3'
+services:
+  globalenergyapi:
+    image: epicrm_globalenergyapi
+    # TODO FIXME this is not the database it should connect to
+    environment:
+      - AUTHDB_POSTGRES_HOST=authdb-pgpool
+      - AUTHDB_POSTGRES_PORT=5432
+      - AUTHDB_POSTGRES_NAME=postgres
+      - AUTHDB_POSTGRES_USER=postgres
+      - GLOBALENERGYDB_POSTGRES_HOST=globalenergydb
+      - GLOBALENERGYDB_POSTGRES_PORT=5432
+      - GLOBALENERGYDB_POSTGRES_NAME=postgres
+      - GLOBALENERGYDB_POSTGRES_USER=postgres
+      - GLOBALENERGYDJANGODB_POSTGRES_HOST=10.0.0.117
+      - GLOBALENERGYDJANGODB_POSTGRES_PORT=6432
+      - GLOBALENERGYDJANGODB_POSTGRES_NAME=global_energy_maindb
+      - GLOBALENERGYDJANGODB_POSTGRES_USER=postgres
+      - PLANK_ACCOUNT_TYPE=1,2
+    env_file:
+      - ./env-secret/authdb.secret.env
+      - ./env-secret/globalenergydb.secret.env
+    depends_on:
+      authdb-pgpool:
+        condition: service_healthy
+      globalenergydb-migrate:
+        condition: service_completed_successfully
+
+  globalenergydb:
+    image: postgres:14
+    # TODO use constants/env for healthcheck timing values
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - globalenergydb-pgdir:/var/lib/postgresql/
+    env_file:
+      - ./env-secret/globalenergydb.self.secret.env
+
+  globalenergydb-migrate:
+    image: epicrm_globalenergydb-migrate
+    env_file:
+      # DBURL
+      - ./env-secret/globalenergydb-migrate.self.secret.env
+    depends_on:
+      globalenergydb:
+        condition: service_healthy
+
+  adminer:
+    image: adminer:4.7.6-standalone
+    restart: always
+    depends_on:
+      - globalenergydb
+    container_name: adminer
+    ports:
+      - "8090:8080"
+
+volumes:
+  globalenergydb-pgdir:

@@ -244,7 +244,7 @@ def do_init(args):
 	else:
 		confobj.modules = ['loyalty']
 		confobj.testdb_sqlsuffix = '-tenant'
-
+	confobj.modules.append('globalenergy')
 	try:
 		os.mkdir(args.projdir)
 	except Exception as e:

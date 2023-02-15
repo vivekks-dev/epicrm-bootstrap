@@ -116,6 +116,24 @@
 		]
 	},
 	{
+		"name": "globalenergy",
+		"essential": true,
+		"api": true,
+		"paths": [
+			{
+				"pattern": "/energy-account",
+				"needs_auth": true
+			},
+			{
+				"pattern": "/energy-accounts",
+				"needs_auth": true
+			}
+		],
+		"databases": [
+			"globalenergydb"
+		]
+	},
+	{
 		"name": "web",
 		"essential": false,
 		"api": false

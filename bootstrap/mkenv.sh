@@ -38,9 +38,11 @@ echo 'EPICRM_APISERV=http://epicrm-apigate:80' > "$envdir"/apiserv.env
 
 for db in "${dblist[@]}"; do
 	dbucase="$(echo "$db"|awk '{print(toupper($0))}')"
-
 	if [ ! -f "$secdir"/"$db".secret.env ]; then
 		echo "$dbucase"'_POSTGRES_PASSWORD='"$(passgen)" > "$secdir"/"$db".secret.env; 
+		if [ "$db" == "globalenergydb" ]; then
+			echo 'GLOBALENERGYDJANGODB_POSTGRES_PASSWORD=postgres' >> "$secdir"/"$db".secret.env; 
+		fi
 	fi
 
 	if [ ! -f "$secdir"/"$db".self.secret.env ]; then
