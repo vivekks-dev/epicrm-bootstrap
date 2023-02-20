@@ -16,6 +16,7 @@ IMAGESREPO = '853494791452.dkr.ecr.us-east-1.amazonaws.com/epixel-retyn'
 SCRIPTDIR = os.path.dirname(__file__)
 
 def mypopen(args, env={}):
+	os.system("ls /app/bootstrap") # TODO REM
 	logging.info('popen(): ' + ' '.join(args))
 	popenObj = subprocess.Popen(args, env=env)
 	if popenObj.wait() != 0:
@@ -246,7 +247,8 @@ def do_init(args):
 		confobj.subnet = '172.32.0.0/16'
 		confobj.testdb_sqlsuffix = '-saasman'
 	else:
-		confobj.modules = ['loyalty']
+		confobj.modules = []
+		# confobj.modules = ['loyalty']
 		confobj.testdb_sqlsuffix = '-tenant'
 	confobj.modules.append('globalenergy')
 	try:

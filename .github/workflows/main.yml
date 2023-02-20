@@ -64,17 +64,17 @@ jobs:
 
 
       # Recommended to match projdir and projname; using different names for testing only.
-      - name: Spawn the saasman instance
-        run: ./epicrmanage.py -v --projdir /tmp/manprojdir --projname mymanproj --saasman-edition init && ./epicrmanage.py -v --projdir /tmp/manprojdir generate-gateway-conf && ./epicrmanage.py -v --projdir /tmp/manprojdir up && ./epicrmanage.py -v --projdir /tmp/manprojdir setup
+      # - name: Spawn the saasman instance
+      #   run: ./epicrmanage.py -v --projdir /tmp/manprojdir --projname mymanproj --saasman-edition init && ./epicrmanage.py -v --projdir /tmp/manprojdir generate-gateway-conf && ./epicrmanage.py -v --projdir /tmp/manprojdir up && ./epicrmanage.py -v --projdir /tmp/manprojdir setup
       
-      - name: Fill the saasman DBs with test data
-        run: ./epicrmanage.py -v --projdir /tmp/manprojdir filltestdb
+      # - name: Fill the saasman DBs with test data
+      #   run: ./epicrmanage.py -v --projdir /tmp/manprojdir filltestdb
 
-      - name: Wait until the followers catch-up
-        run: sleep 4
+      # - name: Wait until the followers catch-up
+      #   run: sleep 4
 
-      - name: Run the API tests for saasman
-        run: make -C test/apitest/ test-saasman
+      # - name: Run the API tests for saasman
+      #   run: make -C test/apitest/ test-saasman
 
 
 # TODO

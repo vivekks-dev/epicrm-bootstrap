@@ -27,23 +27,6 @@
 		]
 	},
 	{
-		"name": "loyalty",
-		"api": true,
-		"paths": [
-			{
-				"pattern": "/loyalty",
-				"invalid": true
-			},
-			{
-				"pattern": "/loyalty/",
-				"needs_auth": true
-			}
-		],
-		"databases": [
-			"loyaltydb"
-		]
-	},
-	{
 		"name": "org",
 		"api": true,
 		"essential": true,
